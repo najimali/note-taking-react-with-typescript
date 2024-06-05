@@ -6,7 +6,7 @@ import NoteList from "./NoteList";
 
 function App() {
   return (
-    <Container className="m-6 p-6 bg-stone-200 rounded-lg">
+    <Container className="m-6 p-6 bg-gray-200 rounded-lg">
       <Routes>
         <Route path="/" element={<NoteList></NoteList>} />
         <Route path="/new" element={<NewNote />} />

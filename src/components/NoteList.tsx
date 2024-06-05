@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button, Col, Form, Row, Stack } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import ReactSelect from "react-select";
@@ -9,6 +9,8 @@ import {
   convertSelectOptionsToTags,
   convertTagsToSelectOptions,
 } from "../transformer/convertTagsToOptions";
+import { Note, RawNote } from "../types/Note";
+import NoteCard from "./NoteCard";
 
 const NoteList = () => {
   const [availableTags, setAvailableTags] = useLocalStorage<Tag[]>(
@@ -17,6 +19,37 @@ const NoteList = () => {
   );
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [title, setTitle] = useState<string>("");
+  const [notes, setNotes] = useLocalStorage<RawNote[]>(
+    localStorageKeys.Notes,
+    []
+  );
+  const tagMap = useMemo(() => {
+    return availableTags.reduce((map: Record<string, Tag>, tag) => {
+      map[tag.id] = tag;
+      return map;
+    }, {});
+  }, [availableTags]);
+
+  const notesWithTags = useMemo(() => {
+    return notes.map((note) => {
+      return {
+        ...note,
+        tags: note.tagsIds.map((tagId) => tagMap[tagId]),
+      };
+    });
+  }, [notes, tagMap]);
+  const filteredNotes: Note[] = useMemo(() => {
+    return notesWithTags.filter((note) => {
+      const isTitleMatched =
+        title === "" || note.title.toLowerCase().includes(title.toLowerCase());
+      const isTagMatched =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) =>
+          note.tagsIds.some((tagId) => tagId === tag.id)
+        );
+      return isTitleMatched && isTagMatched;
+    });
+  }, [title, selectedTags, notesWithTags]);
   return (
     <>
       <Row className="items-center mb-4">
@@ -61,6 +94,13 @@ const NoteList = () => {
           </Col>
         </Row>
       </Form>
+      <Row xs={1} sm={2} lg={3} xl={4} className="gap-3">
+        {filteredNotes.map(({ id, title, tags }) => (
+          <Col>
+            <NoteCard id={id} title={title} tags={tags}></NoteCard>
+          </Col>
+        ))}
+      </Row>
     </>
   );
 };

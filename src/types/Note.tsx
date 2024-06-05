@@ -16,3 +16,8 @@ export interface NoteData {
   markdown: string;
   tags: Tag[];
 }
+export interface NoteCardProps {
+  id: string;
+  title: string;
+  tags: Tag[];
+}
