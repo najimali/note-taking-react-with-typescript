@@ -1,10 +1,12 @@
 import { Badge, Button, Col, Row, Stack } from "react-bootstrap";
-import { useNote } from "../hooks/useNote";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import ReactMarkDown from "react-markdown";
-const Note = () => {
-  const { id, title, tags, markdown } = useNote();
-
+import useNote from "../hooks/useNote";
+const ViewNote = () => {
+  const { id } = useParams();
+  const note = useNote(id);
+  if (!note) return <Navigate to="/" replace></Navigate>;
+  const { title, markdown, tags } = note;
   return (
     <>
       <Row className="items-center mb-4">
@@ -38,4 +40,4 @@ const Note = () => {
   );
 };
 
-export default Note;
+export default ViewNote;

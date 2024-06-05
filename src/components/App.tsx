@@ -3,8 +3,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Container } from "react-bootstrap";
 import NewNote from "./NewNote";
 import NoteList from "./NoteList";
-import NoteLayout from "./NoteLayout";
-import Note from "./Note";
+import EditNote from "./EditNote";
+import ViewNote from "./ViewNote";
 
 function App() {
   return (
@@ -12,9 +12,9 @@ function App() {
       <Routes>
         <Route path="/" element={<NoteList></NoteList>} />
         <Route path="/new" element={<NewNote />} />
-        <Route path="/:id" element={<NoteLayout />}>
-          <Route index element={<Note></Note>} />
-          <Route path="edit" element={<h1>Edit</h1>} />
+        <Route path="/:id">
+          <Route index element={<ViewNote></ViewNote>} />
+          <Route path="edit" element={<EditNote></EditNote>} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

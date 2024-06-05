@@ -1,10 +1,9 @@
-import React from "react";
 import NoteForm from "./NoteForm";
 
 function NewNote() {
   return (
     <div>
-      NewNote
+      <h1 className="text-xl font-semibold mb-2">Edit Note</h1>
       <NoteForm></NoteForm>
     </div>
   );
