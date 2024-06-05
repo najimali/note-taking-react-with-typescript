@@ -1,14 +1,20 @@
-import React, { FormEvent, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { Button, Col, Form, Row, Stack } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ReactSelectCreatable from "react-select/creatable";
-import { RawNote } from "./types/Note";
-import { Tag } from "./types/Tag";
 import { v4 as uuidV4 } from "uuid";
-import useLocalStorage from "./hooks/useLocalStorage";
-import { localStorageKeys } from "./utils/constants";
+import useLocalStorage from "../hooks/useLocalStorage";
+import { localStorageKeys } from "../utils/constants";
+import { Tag } from "../types/Tag";
+import { RawNote } from "../types/Note";
+import {
+  convertSelectOptionsToTags,
+  convertTagsToSelectOptions,
+} from "../transformer/convertTagsToOptions";
 
 const NoteForm = () => {
+  const navigate = useNavigate();
+  const [shouldNavigate, setShouldNavigate] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const markdownRef = useRef<HTMLTextAreaElement>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
@@ -21,8 +27,10 @@ const NoteForm = () => {
     []
   );
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    console.log(notes);
+
     const newRawNote: RawNote = {
       id: uuidV4(),
       title: titleRef.current!.value,
@@ -30,6 +38,7 @@ const NoteForm = () => {
       tagsIds: selectedTags.map(({ id }) => id),
     };
     setNotes((prev) => [...prev, newRawNote]);
+    setShouldNavigate(true);
   };
 
   const handleOnCreateOption = (label: string) => {
@@ -37,6 +46,12 @@ const NoteForm = () => {
     setAvailableTags((prev) => [...prev, newTag]);
     setSelectedTags((prev) => [...prev, newTag]);
   };
+  // useEffect to navigate when shouldNavigate is set to true
+  useEffect(() => {
+    if (shouldNavigate) {
+      navigate("..");
+    }
+  }, [shouldNavigate, navigate]);
   return (
     <div>
       <Form onSubmit={handleSubmit}>
@@ -53,21 +68,13 @@ const NoteForm = () => {
                 <Form.Label>Tags</Form.Label>
                 <ReactSelectCreatable
                   isMulti
-                  value={selectedTags.map((tag) => {
-                    return {
-                      label: tag.label,
-                      value: tag.id,
-                    };
-                  })}
-                  options={availableTags.map((tag) => {
-                    return { label: tag.label, value: tag.id };
-                  })}
                   onCreateOption={handleOnCreateOption}
-                  onChange={(tags) => {
-                    const transformedTags = tags.map((tag) => {
-                      return { label: tag.label, id: tag.value };
-                    });
-                    setSelectedTags(transformedTags);
+                  options={convertTagsToSelectOptions(availableTags)}
+                  value={convertTagsToSelectOptions(selectedTags)}
+                  onChange={(changeSelectOptions) => {
+                    setSelectedTags(
+                      convertSelectOptionsToTags(changeSelectOptions)
+                    );
                   }}
                 ></ReactSelectCreatable>
               </Form.Group>
