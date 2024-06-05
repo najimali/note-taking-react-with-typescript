@@ -35,7 +35,7 @@ const NoteForm = () => {
       id: uuidV4(),
       title: titleRef.current!.value,
       markdown: markdownRef.current!.value,
-      tagsIds: selectedTags.map(({ id }) => id),
+      tagIds: selectedTags.map(({ id }) => id),
     };
     setNotes((prev) => [...prev, newRawNote]);
     setShouldNavigate(true);

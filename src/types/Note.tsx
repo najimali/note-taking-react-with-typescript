@@ -5,7 +5,7 @@ export interface RawNote extends RawNoteData {
 export interface RawNoteData {
   title: string;
   markdown: string;
-  tagsIds: string[];
+  tagIds: string[];
 }
 export interface Note extends NoteData {
   id: string;

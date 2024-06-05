@@ -1,5 +1,3 @@
-import React from "react";
-import { Tag } from "../types/Tag";
 import { Badge, Card, Stack } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import styles from "../styles/Note.module.css";

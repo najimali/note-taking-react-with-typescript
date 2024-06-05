@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button, Col, Form, Row, Stack } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import ReactSelect from "react-select";
@@ -13,16 +13,10 @@ import { Note, RawNote } from "../types/Note";
 import NoteCard from "./NoteCard";
 
 const NoteList = () => {
-  const [availableTags, setAvailableTags] = useLocalStorage<Tag[]>(
-    localStorageKeys.Tags,
-    []
-  );
+  const [availableTags] = useLocalStorage<Tag[]>(localStorageKeys.Tags, []);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [title, setTitle] = useState<string>("");
-  const [notes, setNotes] = useLocalStorage<RawNote[]>(
-    localStorageKeys.Notes,
-    []
-  );
+  const [notes] = useLocalStorage<RawNote[]>(localStorageKeys.Notes, []);
   const tagMap = useMemo(() => {
     return availableTags.reduce((map: Record<string, Tag>, tag) => {
       map[tag.id] = tag;
@@ -34,7 +28,7 @@ const NoteList = () => {
     return notes.map((note) => {
       return {
         ...note,
-        tags: note.tagsIds.map((tagId) => tagMap[tagId]),
+        tags: note.tagIds?.map((tagId) => tagMap[tagId]),
       };
     });
   }, [notes, tagMap]);
@@ -45,7 +39,7 @@ const NoteList = () => {
       const isTagMatched =
         selectedTags.length === 0 ||
         selectedTags.every((tag) =>
-          note.tagsIds.some((tagId) => tagId === tag.id)
+          note.tagIds.some((tagId) => tagId === tag.id)
         );
       return isTitleMatched && isTagMatched;
     });
@@ -96,7 +90,7 @@ const NoteList = () => {
       </Form>
       <Row xs={1} sm={2} lg={3} xl={4} className="gap-3">
         {filteredNotes.map(({ id, title, tags }) => (
-          <Col>
+          <Col key={id}>
             <NoteCard id={id} title={title} tags={tags}></NoteCard>
           </Col>
         ))}
