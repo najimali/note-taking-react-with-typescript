@@ -3,81 +3,58 @@ import { Button, Col, Form, Row, Stack } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import ReactSelectCreatable from "react-select/creatable";
 import { v4 as uuidV4 } from "uuid";
-import useLocalStorage from "../hooks/useLocalStorage";
-import { localStorageKeys } from "../utils/constants";
 import { Tag } from "../types/Tag";
 import { Note, RawNote } from "../types/Note";
 import {
   convertSelectOptionsToTags,
   convertTagsToSelectOptions,
 } from "../transformer/convertTagsToOptions";
+import { localStorageKeys } from "../utils/constants";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 interface NoteFormProps {
-  existingNote?: Note;
+  initialNote?: Note;
+  onSubmit: (note: RawNote) => void;
+  navigatePath?: string;
 }
-const NoteForm = ({ existingNote }: NoteFormProps) => {
-  const navigate = useNavigate();
-  const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
-  const [shouldNavigateToViewNote, setShouldNavigateToViewNote] =
-    useState(false);
-  const titleRef = useRef<HTMLInputElement>(null);
-  const markdownRef = useRef<HTMLTextAreaElement>(null);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(
-    existingNote?.tags ?? []
-  );
-  const [_, setNotes] = useLocalStorage<RawNote[]>(localStorageKeys.Notes, []);
+const NoteForm = ({
+  initialNote,
+  onSubmit,
+  navigatePath = "..",
+}: NoteFormProps) => {
   const [availableTags, setAvailableTags] = useLocalStorage<Tag[]>(
     localStorageKeys.Tags,
     []
   );
+  const navigate = useNavigate();
+  const titleRef = useRef<HTMLInputElement>(null);
+  const markdownRef = useRef<HTMLTextAreaElement>(null);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(
+    initialNote?.tags ?? []
+  );
+  const [shouldNavigate, setShouldNavigate] = useState(false);
 
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    if (!existingNote) {
-      const newRawNote: RawNote = {
-        id: uuidV4(),
-        title: titleRef.current!.value,
-        markdown: markdownRef.current!.value,
-        tagIds: selectedTags.map(({ id }) => id),
-      };
-      setNotes((prev) => [...prev, newRawNote]);
-      setShouldNavigateBack(true);
-    } else {
-      const updatedNote: RawNote = {
-        id: existingNote.id,
-        title: titleRef.current!.value,
-        markdown: markdownRef.current!.value,
-        tagIds: selectedTags.map(({ id }) => id),
-      };
-
-      setNotes((prevNotes) => {
-        const newNotes = prevNotes.filter(
-          (note) => note.id !== existingNote.id
-        );
-        return [...newNotes, updatedNote];
-      });
-      setShouldNavigateToViewNote(true);
-    }
+    const newRawNote: RawNote = {
+      id: initialNote?.id || uuidV4(),
+      title: titleRef.current!.value,
+      markdown: markdownRef.current!.value,
+      tagIds: selectedTags.map(({ id }) => id),
+    };
+    onSubmit(newRawNote);
+    setShouldNavigate(true);
   };
-
   const handleOnCreateOption = (label: string) => {
     const newTag = { id: uuidV4(), label };
     setAvailableTags((prev) => [...prev, newTag]);
     setSelectedTags((prev) => [...prev, newTag]);
   };
   useEffect(() => {
-    if (shouldNavigateBack) {
-      navigate("..");
+    if (shouldNavigate) {
+      navigate(navigatePath);
     }
-  }, [shouldNavigateBack, navigate]);
-
-  useEffect(() => {
-    if (shouldNavigateToViewNote && existingNote) {
-      navigate(`/${existingNote.id}`);
-    }
-  }, [shouldNavigateToViewNote, navigate, existingNote]);
-
-  useEffect;
+  }, [shouldNavigate, navigate, navigatePath]);
   return (
     <div>
       <Form onSubmit={handleSubmit}>
@@ -89,7 +66,7 @@ const NoteForm = ({ existingNote }: NoteFormProps) => {
                 <Form.Control
                   required
                   ref={titleRef}
-                  defaultValue={existingNote?.title}
+                  defaultValue={initialNote?.title}
                 ></Form.Control>
               </Form.Group>
             </Col>
@@ -117,7 +94,7 @@ const NoteForm = ({ existingNote }: NoteFormProps) => {
               as="textarea"
               rows={10}
               ref={markdownRef}
-              defaultValue={existingNote?.markdown}
+              defaultValue={initialNote?.markdown}
             ></Form.Control>
           </Form.Group>
           <Stack direction="horizontal" className="justify-end gap-2">
@@ -135,5 +112,4 @@ const NoteForm = ({ existingNote }: NoteFormProps) => {
     </div>
   );
 };
-
 export default NoteForm;
