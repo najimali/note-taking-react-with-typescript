@@ -19,7 +19,7 @@ const useNote = (id: string | undefined) => {
     if (!note) return { id: "", title: "", markdown: "", tags: [] };
     return {
       ...note,
-      tags: note.tagIds.map((id) => tagMap[id]),
+      tags: note.tagIds.map((id) => tagMap[id]).filter(Boolean),
     };
   }, [tagMap, note]);
   return noteWithTag;

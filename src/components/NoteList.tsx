@@ -11,12 +11,17 @@ import {
 } from "../transformer/convertTagsToOptions";
 import { Note, RawNote } from "../types/Note";
 import NoteCard from "./NoteCard";
+import EditTagsModel from "./EditTagsModel";
 
 const NoteList = () => {
-  const [availableTags] = useLocalStorage<Tag[]>(localStorageKeys.Tags, []);
+  const [availableTags, setAvailableTags] = useLocalStorage<Tag[]>(
+    localStorageKeys.Tags,
+    []
+  );
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [title, setTitle] = useState<string>("");
   const [notes] = useLocalStorage<RawNote[]>(localStorageKeys.Notes, []);
+  const [shouldShowEditTagModal, setShouldEditTagModal] = useState(false);
   const tagMap = useMemo(() => {
     return availableTags.reduce((map: Record<string, Tag>, tag) => {
       map[tag.id] = tag;
@@ -28,7 +33,7 @@ const NoteList = () => {
     return notes.map((note) => {
       return {
         ...note,
-        tags: note.tagIds?.map((tagId) => tagMap[tagId]),
+        tags: note.tagIds?.map((tagId) => tagMap[tagId]).filter(Boolean),
       };
     });
   }, [notes, tagMap]);
@@ -44,18 +49,41 @@ const NoteList = () => {
       return isTitleMatched && isTagMatched;
     });
   }, [title, selectedTags, notesWithTags]);
+
+  const onDeleteTag = (id: string) => {
+    setAvailableTags((prev) => prev.filter((tag) => tag.id !== id));
+  };
+  const onUpdateTag = (tag: Tag) => {
+    setAvailableTags((prev) => {
+      const newTags = prev.filter((tempTag) => tag.id !== tempTag.id);
+      return [...newTags, tag];
+    });
+  };
   return (
     <>
+      <EditTagsModel
+        show={shouldShowEditTagModal}
+        availableTags={availableTags}
+        onHide={() => setShouldEditTagModal(false)}
+        onDeleteTag={onDeleteTag}
+        onUpdateTag={onUpdateTag}
+      ></EditTagsModel>
       <Row className="items-center mb-4">
         <Col>
-          <h1 className="text-gray-800 font-medium text-2xl">Notes</h1>
+          <h1 className="text-gray-800 font-medium text-2xl">Your Notes</h1>
         </Col>
         <Col xs="auto">
           <Stack gap={2} direction="horizontal">
             <Link to="/new">
               <Button variant="primary">Create</Button>
             </Link>
-            <Button variant="outline-secondary"> Edit Tag</Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => setShouldEditTagModal(true)}
+            >
+              {" "}
+              Edit Tag
+            </Button>
           </Stack>
         </Col>
       </Row>
